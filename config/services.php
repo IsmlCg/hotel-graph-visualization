@@ -30,5 +30,8 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'avvio' => [
+        'api_url' => env('AVVIO_API_URL', 'https://api.avvio.com/api/ws_api.php'),
+    ],
 
 ];

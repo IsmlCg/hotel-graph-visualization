@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\HotelController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Route for displaying site access
+Route::get('/hotels', [HotelController::class, 'index'])->name('home');
+Route::post('/get-hotels-room', [HotelController::class, 'getHotelRoom'])->name('hotels.data');
