@@ -23,7 +23,7 @@ Make sure Composer is installed. Run the following command to install the necess
 
 ```bash
 composer install
-
+```
 ### Step 3: Set Up Environment Variables
 Make a copy of the .env.example file and rename it to .env. Open the .env file and set the following variables:
 
@@ -31,13 +31,13 @@ Make a copy of the .env.example file and rename it to .env. Open the .env file a
 API_URL=https://api.example.com/hotels
 DEMO_USERNAME=your_username
 DEMO_PASSWORD=your_password
-
+```
 ### Step 4: Generate Application Key
 Run the following command to create a new application key:
 
 ```bach
 php artisan key:generate
-
+```
 ## Run the application 
 After configuring the environment, you can run the application locally. Use the following command:
 
