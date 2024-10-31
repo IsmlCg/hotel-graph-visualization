@@ -41,6 +41,8 @@ php artisan key:generate
 ```
 ## Run the application 
 After configuring the environment, you can run the application locally. Use the following command:
-
+```bach
+php artisan serve
+```
 ## Usage 
 Once you launch the app, you will be able to see the interactive chart displaying the pricing information of the top three hotels. Users can select different options to visualize the data effectively.
