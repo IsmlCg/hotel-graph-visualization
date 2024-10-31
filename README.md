@@ -39,7 +39,7 @@ Run the following command to create a new application key:
 ```bach
 php artisan key:generate
 ```
-## Run the application 
+## Running the Application
 After configuring the environment, you can run the application locally. Use the following command:
 ```bach
 php artisan serve
