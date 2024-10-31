@@ -13,10 +13,5 @@ use App\Http\Controllers\HotelController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
 // Route for displaying site access
-Route::get('/hotels', [HotelController::class, 'index'])->name('home');
-Route::post('/get-hotels-room', [HotelController::class, 'getHotelRoom'])->name('hotels.data');
+Route::get('/', [HotelController::class, 'render'] )->name('home');
