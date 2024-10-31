@@ -17,7 +17,7 @@ First, clone the repository to your local machine using the following command:
 ```bash
 git clone https://github.com/IsmlCg/hotel-graph-visualization.git
 cd hotel-graph-visualization
-
+```
 ### Step 2: Install Dependencies
 Make sure Composer is installed. Run the following command to install the necessary PHP dependencies:
 
