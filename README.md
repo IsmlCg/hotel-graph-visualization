@@ -28,18 +28,22 @@ composer install
 Make a copy of the .env.example file and rename it to .env. Open the .env file and set the following variables:
 
 ```bash
-API_URL=https://api.example.com/hotels
-DEMO_USERNAME=your_username
-DEMO_PASSWORD=your_password
+API_URL=https://api.example.com/hotels 
+AVVIO_API_URL=https://api.example.com/hotels
+AVVIO_USER_NAME=your_username
+AVVIO_PASSWORD=your_password 
 ```
 ### Step 4: Generate Application Key
 Run the following command to create a new application key:
 
 ```bach
 php artisan key:generate
-```
-## Run the application 
+``` 
+## Running the Application
 After configuring the environment, you can run the application locally. Use the following command:
-
+```bach
+php artisan serve
+```
 ## Usage 
 Once you launch the app, you will be able to see the interactive chart displaying the pricing information of the top three hotels. Users can select different options to visualize the data effectively.
+ 
