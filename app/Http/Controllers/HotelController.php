@@ -68,6 +68,29 @@ class HotelController extends Controller
     }
 
     /**
+    * Removes keys from each subarray of data and returns the cleaned result.
+    *
+    * This method uses array_values ​​to reindex each subarray.
+    * Returns an array without keys.
+    *
+    * @return array Cleans the data using the removed keys from each subarray.
+    */
+    private function cleanedDataKey( array $data ): array 
+    {
+        // Initialize an array to hold cleaned data
+        $cleanedData = []; 
+
+        // Use array_walk to remove keys
+        array_walk($data, function( $subArray ) use ( &$cleanedData ) 
+        {
+            // Reindex sub-array and add to cleaned data
+            $cleanedData[] = array_values( $subArray ); 
+        });
+
+        return $cleanedData; 
+    }
+
+    /**
      * Convert the site is pricing matrix to a specific currency.
      *
      * @param array $sitePrices The array containing prices from different sites.
@@ -139,6 +162,9 @@ class HotelController extends Controller
             // Convert the site is pricing matrix to a specific currency.
             $body = $this->convertToCurrency( $sitePricesDate, $toCurrency );
 
+            // Cleans the body using the removed keys from each subarray
+            $body = $this->cleanedDataKey( $body );
+
             // Pass the fetch hotel to the view for rendering
             return response()->json([
                 'message' => 'IDs processed successfully', 
@@ -160,7 +186,7 @@ class HotelController extends Controller
      * @return array An array of siteID values.
      * @throws InvalidArgumentException if any siteID is not an integer.
     */
-    private function filterSiteIDs(array $siteList)
+    private function filterSiteIDs(array $siteList):array
     {
         return array_map(function ($site) 
         {
@@ -186,47 +212,57 @@ class HotelController extends Controller
     */
     private function filterRates( array &$datePrices, array $listSitesRate )
     {
-        
-        foreach ( $listSitesRate['siteList'] as $index => $site ) 
+        if( isset( $listSitesRate['siteList'] ) )
         {
-            $checkinDate ='';
-            foreach ( $site['rates'] as $rate ) 
+            foreach ( $listSitesRate['siteList'] as $index => $site ) 
             {
-                // The rate has many checkin dates and then changes the reference variable to get lower prices.
-                $checkinDate = $rate['checkin'];
-                
-                // Get the price for pr1 single or pr2 couple the lowest price is at index 0
-                $price = $rate[ 'price' ][ 0 ][ $this->pr1OrPr2 ] ?? null;
 
-                // At first this is null, later lower prices will be set.
-                $defaulPrice = $datePrices[$checkinDate][$index +1 ];
+                // get id from each site
+                $siteID = $site['siteID'];
 
-                // If prices are null, there is no need to update the datePrices variable, it is a reference variable.
-                if( !is_null( $price ) )
+                if( isset( $site['rates'] ) )
                 {
-                    // Get lower price and set up in datePrices.
-                    $price = is_null( $defaulPrice ) ? $price:min( $defaulPrice,$price );
+                    foreach ( $site['rates'] as $rate ) 
+                    {
+                        // The rate has many checkin dates and then changes the reference variable to get lower prices.
+                        $checkinDate = $rate['checkin'];
+                        
+                        // Get the price for pr1 single or pr2 couple the lowest price is at index 0
+                        $price = $rate[ 'price' ][ 0 ][ $this->pr1OrPr2 ] ?? null;
 
-                    // It is a reference variable and is then updated with the minimum price it finds.
-                    $datePrices[$checkinDate][$index +1] =  $price ;
+                        // At first this is null, later lower prices will be set.
+                        $defaulPrice = $datePrices[ $checkinDate ][ $siteID ];
+
+                        // If prices are null, there is no need to update the datePrices variable, it is a reference variable.
+                        if( !is_null( $price ) )
+                        {
+                            // Get lower price and set up in datePrices.
+                            $price = is_null( $defaulPrice ) ? $price:min( $defaulPrice,$price );
+
+                            // It is a reference variable and is then updated with the minimum price it finds.
+                            $datePrices[$checkinDate][ $siteID ] =  $price ;
+                        }
+                        
+                    }  
                 }
                 
-            }  
-        } 
+            }
+        }
+             
     }
 
     /**
-    * Retrieves the day range corresponding to a given token.
-    *
-    * @param mixed $code The code indicating the number of days, typically set to:
-    * -DAYS_7 => 7,
-    * -DAYS_14 => 14,
-    * -DAYS_30 => 30,
-    * -DAYS_60 => 60,
-    *
-    * @return int The number of days associated with the provided token.
+     * Retrieves the day range corresponding to a given token.
+     *
+     * @param mixed $code The code indicating the number of days, typically set to:
+     * -DAYS_7 => 7,
+     * -DAYS_14 => 14,
+     * -DAYS_30 => 30,
+     * -DAYS_60 => 60,
+     *
+     * @return int The number of days associated with the provided token.
     */
-    private function getDays( $key ) {
+    private function getDays( $key ):int {
         return self::DAYS[$key] ?? null;
     }
 
@@ -238,21 +274,25 @@ class HotelController extends Controller
      *
      * @return array An array of dates in 'Y-m-d' format, starting from today's date and extending to the specified number of days.
      */
-    private function generateDateRange( int $days ): array {
+    private function generateDateRange( int $days, array $siteIDList ): array {
         
         if( $days === 0 ){ 
             return [];
         }
         $startDate = new \DateTime(); 
         --$days;
-        $startDate->modify("+{$days} days"); 
-        $date = $startDate->format('Y-m-d'); 
+        $startDate->modify( "+{$days} days" ); 
+        $date = $startDate->format( 'Y-m-d' ); 
+
+        $siteIDListKeys = array_fill_keys( $siteIDList, null );
+        
         // Create an array to hold the current day's data
         $dataDate = [
-            $date => [$date, null, null, null]
+            $date => [ $date] + $siteIDListKeys
         ];
+        
         // Merge the previous dates with the current date
-        return array_merge( $this->generateDateRange($days), $dataDate);  
+        return array_merge( $this->generateDateRange( $days, $siteIDList ), $dataDate);  
     }
 
 
@@ -262,7 +302,7 @@ class HotelController extends Controller
      * @param array $siteList An array of sites, each containing a 'primaryName' key.
      * @return array An array of primaryName values. 
     */
-    private function filterPrimaryNames( array $siteList )
+    private function filterPrimaryNames( array $siteList ):array
     {
         return array_map(function ($site) {
             return $site['primaryName'];
@@ -270,21 +310,21 @@ class HotelController extends Controller
     }
 
     /**
-    * Retrieve hotel rates for a specified number of days based on the provided list of location IDs.
-    *
-    * This function outputs an array where:
-    * - The first column contains the date.
-    * - The second to fourth columns contain the prices for each site ID.
-    *
-    * @param array $siteIDList An array of site IDs whose prices will be retrieved.
-    * @param int $days The number of days for which prices will be retrieved.
-    *
-    * @return array An array of hotel prices organized as follows:
-    *           [
-    *               ['2024-10-29', price1, price2, price3],
-    *               ['2024-10-30', price1, price2, price3],
-    *               ...
-    *           ]
+     * Retrieve hotel rates for a specified number of days based on the provided list of location IDs.
+     *
+     * This function outputs an array where:
+     * - The first column contains the date.
+     * - The second to fourth columns contain the prices for each site ID.
+     *
+     * @param array $siteIDList An array of site IDs whose prices will be retrieved.
+     * @param int $days The number of days for which prices will be retrieved.
+     *
+     * @return array An array of hotel prices organized as follows:
+     *           [
+     *               ['2024-10-29', price1, price2, price3],
+     *               ['2024-10-30', price1, price2, price3],
+     *               ...
+     *           ]
     */
     private function fetchRatesByDays( array $siteIDList, int $days ): array
     {
@@ -298,7 +338,7 @@ class HotelController extends Controller
             $DAYS_60 = $this->getDays( "DAYS_60" );
 
             // Generates a range of dates from the current date to a specified number.
-            $datePrices = $this->generateDateRange( $days );
+            $datePrices = $this->generateDateRange( $days, $siteIDList );
             
             // init date
             $startDate = $this->today; 
@@ -362,7 +402,7 @@ class HotelController extends Controller
             // add the header of google chart
             $header = [ "Date", ...$hotelNames ];
             $siteIDList = $this->filterSiteIDs( $siteAccess['siteList'] );
-
+             
             // Fetch site access using the service
             $propertyDetails = $this->hotelService->fetchPropertyInformation( $siteIDList );
 
@@ -372,6 +412,9 @@ class HotelController extends Controller
             // Convert aggregate prices to an indexed array
             $body = $this->fetchRatesByDays( $siteIDList, $DAYS_60 );
 
+            // Cleans the body using the removed keys from each subarray
+            $body = $this->cleanedDataKey( $body );
+            
             //Pass the hotel into view to draw
             return view('hotels.index', [
                 'data' => [ $header, ...$body ], 
